@@ -153,15 +153,6 @@ class BinarlyAPI(object):
         else:
             return response.text
 
-    @staticmethod
-    def __updatestats(dest, src):
-        if dest is None or len(dest) == 0:
-            dest = src
-        else:
-            for key, value in src.iteritems():
-                dest[key] += value
-
-        return dest
     def build_url(self, url_path, **kwargs):
         """Helper function to construct URL from given args"""
         uri = url_path.format(self.server)
@@ -234,7 +225,7 @@ class BinarlyAPI(object):
                 if response['status'] in ['done', 'failed']:
                     break
 
-                if response.has_key('results') and len(response['results']) > 0:
+                if response.get('next_page', None) != None:
                     yield response
 
                     if response['next_page']:
@@ -495,7 +486,7 @@ class BinarlyAPI(object):
             if json_data.has_key("error"):
                 return json_data
 
-            results['stats'] = self.__updatestats(results['stats'], json_data['stats'])
+            results['stats'] = json_data['stats']
             results['results'] += json_data['results']
 
         return results
