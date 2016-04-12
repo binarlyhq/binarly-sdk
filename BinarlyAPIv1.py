@@ -422,14 +422,14 @@ class BinarlyAPI(object):
         """
         result = {}
         result['requests'] = []
-        query_count = len(patterns)
-        for idx in xrange(0, query_count):
+
+        for idx in xrange(0, len(patterns)):
             result['requests'].append({'results':[], 'stats':{}, 'status':None})
         for result_index, page in self.multisearch_iter(patterns, limit):
             if page.has_key('error'):
                 return page
 
-            for idx in xrange(0, query_count):
+            for idx in xrange(0, len(page['requests'])):
                 result['requests'][result_index+idx]['status'] = page['requests'][idx]['status']
                 result['requests'][result_index+idx]['stats'] = page['requests'][idx]['stats']
                 result['requests'][result_index+idx]['results'] += page['requests'][idx]['results']
