@@ -218,6 +218,9 @@ class BinarlyAPI(object):
             response = self.__get(next_page)
             previous_response = None
             while True:
+                if 'error' in response:
+                    break
+                
                 if response['status'] != previous_response and status_callback != None:
                     status_callback(response)
 
