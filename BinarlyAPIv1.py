@@ -179,18 +179,21 @@ class BinarlyAPI(object):
         return json.dumps(search_obj)
 
     @staticmethod
-    def __get_search_obj(patterns, limit, exact):
+    def __get_search_obj(patterns, limit, exact, test):
         """Construct a search object from provided arguments.
 
         Parameters:
             * ``pattterns`` - vector of patterns to search form
             * ``limit``     - limit the number of returned results
             * ``exact``     - specifiy if the search should be exact
+            * ``test``      - run search in test mode
         """
         search_obj = {}
         search_obj['limit'] = limit
         if exact:
             search_obj['exact'] = 'yes'
+        if test:
+            search_obj['test'] = 'yes'
 
         if isinstance(patterns, list):
             search_obj['patterns'] = patterns
@@ -241,15 +244,16 @@ class BinarlyAPI(object):
                     response = self.__get(next_page)
             yield response
 
-    def search_iter(self, patterns, limit=20, exact=False):
+    def search_iter(self, patterns, limit=20, exact=False, test=False):
         """Search iterator for walking the results page by page
 
         Parameters:
-            * ``patterns`` - a list of patterns that should contained in all of the results
+            * ``patterns`` - a list of patterns that should be contained in all of the results
             * ``limit``    - number of results to retrieve at most (*default=20*)
             * ``exact``    - validate results in order to eliminate FPs (default=False)
+            * ``test``     - run in test mode (default=False)
 
-        Yeilds a dictionary containg stats about the number of files found and the list of results.
+        Yields a dictionary containg stats about the number of files found and the list of results.
 
         Example response::
 
@@ -280,7 +284,7 @@ class BinarlyAPI(object):
         >>  "next_page": null,
         >>}
         """
-        search_data = self.__get_search_obj(patterns, limit, exact)
+        search_data = self.__get_search_obj(patterns, limit, exact, test)
         url = self.build_url(SEARCH_ROOT)
 
         for page in self.__await_req_iter(self.__get(url, search_data)):
@@ -439,7 +443,7 @@ class BinarlyAPI(object):
 
         return result
 
-    def search(self, patterns, limit=20, exact=False):
+    def search(self, patterns, limit=20, exact=False, test=False):
         """
         Perform a search operation for the provided ``patterns``.
 
@@ -485,7 +489,7 @@ class BinarlyAPI(object):
         results = {}
         results['results'] = []
         results['stats'] = {}
-        for json_data in self.search_iter(patterns, limit, exact):
+        for json_data in self.search_iter(patterns, limit, exact, test):
             if json_data.has_key("error"):
                 return json_data
 
@@ -675,7 +679,7 @@ class BinarlyAPI(object):
 
         return True
 
-    def yara_hunt(self, rule_path, status_callback=None):
+    def yara_hunt(self, rule_path, test, status_callback=None):
         """Performs a YARA Scan using the yara rule specified by ``rule_path``
         over all of the files in the collection.
 
@@ -736,5 +740,5 @@ class BinarlyAPI(object):
                 fcontents = str(fcontents)
 
         return self.__await_req_iter(
-            self.__get(self.build_url(HUNT_ROOT), fcontents),
+            self.__get(self.build_url(HUNT_ROOT, test=('yes' if test else 'no')), fcontents),
             status_callback=status_callback).next()
