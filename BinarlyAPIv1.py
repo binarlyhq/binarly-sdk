@@ -142,7 +142,7 @@ class BinarlyAPI(object):
 
     def __get(self, url, data=None):
         """GET helper function"""
-        response = self.session.get(url, data=data)
+        response = self.session.get(url, data=data, timeout=1800)
         if response.status_code == 403:
             raise InvalidAPIKey("Invalid API Key")
         elif response.status_code == 400:
